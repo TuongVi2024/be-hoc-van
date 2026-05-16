@@ -1,0 +1,12 @@
+# Google Cloud credentials - KHÔNG commit lên git!
+gcloud-key.json
+*.json
+!package.json
+!package-lock.json
+
+# Node modules
+node_modules/
+
+# Audio files (tạo từ script, không cần commit)
+# Bỏ comment dòng dưới nếu muốn bỏ qua audio files
+# audio/

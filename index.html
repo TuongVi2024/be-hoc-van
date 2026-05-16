@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BÉ HỌC VẦN</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #ff7675;
+            --bg-color: #ffeaa7;
+            --card-bg: #ffffff;
+            --text-color: #2d3436;
+            --blue: #74b9ff;
+            --green: #55efc4;
+            --purple: #a29bfe;
+            --orange: #fdcb6e;
+            --gray: #636e72;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: linear-gradient(180deg, #fff3b0 0%, #ffeaa7 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            color: var(--text-color);
+        }
+
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin: 0 0 10px;
+            text-shadow: 2px 2px 0px #fff;
+            font-size: 2rem;
+        }
+
+        .counter {
+            font-size: 1.15rem;
+            margin-bottom: 16px;
+            color: var(--gray);
+            font-weight: bold;
+        }
+
+        .audio-status {
+            width: min(360px, 100%);
+            background-color: rgba(255, 255, 255, 0.85);
+            border: 3px solid #fff;
+            border-radius: 18px;
+            padding: 12px;
+            margin-bottom: 18px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+            text-align: center;
+            font-size: 0.95rem;
+            color: var(--gray);
+        }
+
+        .audio-status.ready {
+            color: var(--green);
+            border-color: var(--green);
+        }
+
+        .audio-status.error {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .flashcard-container {
+            perspective: 1000px;
+            margin-bottom: 28px;
+        }
+
+        .flashcard {
+            width: 320px;
+            height: 250px;
+            background-color: var(--card-bg);
+            border-radius: 24px;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            transition: transform 0.2s, background-color 0.3s, opacity 0.2s;
+            user-select: none;
+            border: 6px solid var(--orange);
+            text-align: center;
+            padding: 10px;
+        }
+
+        .rhyme-text {
+            font-size: 4.8rem;
+            line-height: 1.05;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            border-radius: 16px;
+            padding: 10px 0;
+            transition: background-color 0.2s;
+        }
+
+        .rhyme-text:hover {
+            background-color: rgba(0,0,0,0.02);
+        }
+
+        .word-btn {
+            margin-top: 15px;
+            background-color: #f1f2f6;
+            color: var(--text-color);
+            font-size: 1.4rem;
+            padding: 10px 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 0px #dfe4ea;
+            min-width: unset;
+            width: 90%;
+            cursor: pointer;
+            text-transform: lowercase;
+        }
+
+        .word-btn:active {
+            box-shadow: 0 0px 0px #dfe4ea;
+            transform: translateY(4px);
+        }
+
+        .flashcard:active {
+            transform: scale(0.95);
+        }
+
+        .flashcard.playing {
+            opacity: 0.5;
+        }
+
+        .hint {
+            margin-top: -16px;
+            margin-bottom: 18px;
+            font-size: 0.95rem;
+            color: var(--gray);
+            text-align: center;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        button {
+            border: none;
+            border-radius: 20px;
+            padding: 14px 22px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 6px 0px rgba(0,0,0,0.1);
+            font-family: inherit;
+            min-width: 120px;
+            position: relative;
+            user-select: none;
+        }
+
+        button:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0px rgba(0,0,0,0.1);
+        }
+
+        button:hover {
+            filter: brightness(1.05);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-prev,
+        .btn-next {
+            background-color: var(--blue);
+            color: white;
+            min-width: 64px;
+            max-width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            font-size: 1.8rem;
+            padding: 0;
+            box-shadow: 0 6px 0px #0984e3;
+        }
+
+        .btn-prev:active, .btn-next:active {
+            box-shadow: 0 2px 0px #0984e3;
+        }
+
+        .btn-play {
+            background-color: var(--green);
+            color: #2d3436;
+            font-size: 1.25rem;
+            padding: 18px 24px;
+            flex: 1;
+            max-width: 220px;
+            min-width: 140px;
+            box-shadow: 0 6px 0px #00b894;
+            border-radius: 20px;
+        }
+
+        .btn-play:active {
+            box-shadow: 0 2px 0px #00b894;
+        }
+
+        .secondary-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+            max-width: 360px;
+            margin-top: 4px;
+        }
+
+        .btn-slow {
+            background-color: #fab1a0;
+            color: #2d3436;
+            box-shadow: 0 6px 0px #e17055;
+            min-width: 0; /* Let grid control width */
+        }
+
+        .btn-slow:active {
+            box-shadow: 0 2px 0px #e17055;
+        }
+
+        .btn-random {
+            background-color: var(--purple);
+            color: white;
+            box-shadow: 0 6px 0px #6c5ce7;
+            min-width: 0; /* Let grid control width */
+        }
+
+        .btn-random:active {
+            box-shadow: 0 2px 0px #6c5ce7;
+        }
+
+        @media (max-width: 420px) {
+            body {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.6rem;
+                margin-bottom: 5px;
+            }
+
+            .counter {
+                font-size: 1rem;
+                margin-bottom: 12px;
+            }
+
+            .flashcard {
+                width: 290px;
+                height: 220px;
+                border-width: 5px;
+            }
+
+            .rhyme-text {
+                font-size: 4.2rem;
+            }
+
+            .word-btn {
+                font-size: 1.25rem;
+                padding: 8px 15px;
+                margin-top: 10px;
+            }
+
+            .hint {
+                font-size: 0.85rem;
+                margin-bottom: 15px;
+                padding: 0 10px;
+            }
+
+            .controls {
+                width: 100%;
+                max-width: 360px;
+                gap: 8px;
+            }
+
+            .secondary-controls {
+                gap: 8px;
+            }
+
+            button {
+                padding: 12px 10px;
+                font-size: 0.9rem;
+                border-radius: 15px;
+            }
+
+            .btn-prev, .btn-next {
+                min-width: 56px;
+                max-width: 56px;
+                height: 56px;
+                font-size: 1.5rem;
+                border-radius: 15px;
+            }
+
+            .btn-play {
+                font-size: 1.1rem;
+                padding: 15px 10px;
+                min-width: 120px;
+                border-radius: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>BÉ HỌC VẦN</h1>
+    <div class="counter" id="counter">1 / 72</div>
+
+    <div class="audio-status" id="audioStatus" style="display: none;">
+        🔊 Sử dụng giọng đọc Google Cloud TTS (MP3)
+    </div>
+
+    <div class="flashcard-container">
+        <div class="flashcard" id="flashcard">
+            <!-- Nội dung sẽ được render bằng JS -->
+        </div>
+    </div>
+
+    <div class="hint">
+        Chạm vào thẻ hoặc bấm "Đọc vần" để nghe phát âm.
+    </div>
+
+    <div class="controls">
+        <button class="btn-prev" onclick="prevCard()">⬅️</button>
+        <button class="btn-play" id="btnPlay" onclick="playAudio()">🔊 Đọc vần</button>
+        <button class="btn-next" onclick="nextCard()">➡️</button>
+    </div>
+
+    <div class="secondary-controls">
+        <button class="btn-slow" id="btnSlow" onclick="playSlowAudio()">🐢 Đọc chậm</button>
+        <button class="btn-random" onclick="randomCard()">🎲 Trộn ngẫu nhiên</button>
+    </div>
+
+    <script src="data.js"></script>
+    <script>
+        // Danh sách các vần tiếng Việt lấy từ data.js
+        const rhymes = rhymeData.map(item => item.rhyme);
+
+        // Đường dẫn tới thư mục chứa file MP3
+        const AUDIO_DIR = 'audio';
+
+        let currentIndex = 0;
+        let currentAudio = null;
+        let isPlaying = false;
+
+        const cardElement = document.getElementById('flashcard');
+        const counterElement = document.getElementById('counter');
+        const audioStatus = document.getElementById('audioStatus');
+        const btnPlay = document.getElementById('btnPlay');
+        const btnSlow = document.getElementById('btnSlow');
+
+        function updateCard() {
+            const item = rhymeData[currentIndex];
+            const rhyme = item.rhyme;
+            const word = item.word;
+            
+            let html = `<div class="rhyme-text" onclick="playAudio()">${rhyme.toUpperCase()}<br>${rhyme.toLowerCase()}</div>`;
+            
+            if (word && word !== '(hiếm)') {
+                html += `<button class="word-btn" onclick="playWordAudio(event)">🗣️ ${word}</button>`;
+            }
+            
+            cardElement.innerHTML = html;
+            counterElement.textContent = `${currentIndex + 1} / ${rhymes.length}`;
+
+            const colors = ['#fdcb6e', '#ff7675', '#74b9ff', '#a29bfe', '#55efc4'];
+            cardElement.style.borderColor = colors[currentIndex % colors.length];
+        }
+
+        function nextCard() {
+            stopAudio();
+            if (currentIndex < rhymes.length - 1) {
+                currentIndex++;
+            } else {
+                currentIndex = 0;
+            }
+            updateCard();
+        }
+
+        function prevCard() {
+            stopAudio();
+            if (currentIndex > 0) {
+                currentIndex--;
+            } else {
+                currentIndex = rhymes.length - 1;
+            }
+            updateCard();
+        }
+
+        function randomCard() {
+            stopAudio();
+            currentIndex = Math.floor(Math.random() * rhymes.length);
+            updateCard();
+        }
+
+        function stopAudio() {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                currentAudio = null;
+            }
+            isPlaying = false;
+            cardElement.classList.remove('playing');
+            btnPlay.disabled = false;
+            btnSlow.disabled = false;
+        }
+
+        /**
+         * Phát file MP3 bình thường.
+         * File: audio/{vần}.mp3
+         */
+        function playAudio() {
+            if (isPlaying) {
+                stopAudio();
+                return;
+            }
+
+            const rhyme = rhymes[currentIndex];
+            const audioPath = `${AUDIO_DIR}/${rhyme}.mp3`;
+
+            stopAudio();
+            isPlaying = true;
+            cardElement.classList.add('playing');
+
+            currentAudio = new Audio(audioPath);
+
+            currentAudio.addEventListener('ended', function () {
+                stopAudio();
+            });
+
+            currentAudio.addEventListener('error', function () {
+                stopAudio();
+                audioStatus.textContent = `⚠️ Không tìm thấy file: ${audioPath}`;
+                audioStatus.className = 'audio-status error';
+            });
+
+            currentAudio.play().catch(function (err) {
+                stopAudio();
+                audioStatus.textContent = `⚠️ Lỗi phát âm: ${err.message}`;
+                audioStatus.className = 'audio-status error';
+            });
+        }
+
+        /**
+         * Phát file MP3 phiên bản chậm.
+         * File: audio/{vần}_slow.mp3
+         */
+        function playSlowAudio() {
+            if (isPlaying) {
+                stopAudio();
+                return;
+            }
+
+            const rhyme = rhymes[currentIndex];
+            const audioPath = `${AUDIO_DIR}/${rhyme}_slow.mp3`;
+
+            stopAudio();
+            isPlaying = true;
+            cardElement.classList.add('playing');
+            btnSlow.disabled = true;
+
+            currentAudio = new Audio(audioPath);
+
+            currentAudio.addEventListener('ended', function () {
+                stopAudio();
+            });
+
+            currentAudio.addEventListener('error', function () {
+                stopAudio();
+                audioStatus.textContent = `⚠️ Không tìm thấy file: ${audioPath}`;
+                audioStatus.className = 'audio-status error';
+            });
+
+            currentAudio.play().catch(function (err) {
+                stopAudio();
+                audioStatus.textContent = `⚠️ Lỗi phát âm: ${err.message}`;
+                audioStatus.className = 'audio-status error';
+            });
+        }
+
+        /**
+         * Phát file MP3 từ vựng.
+         * File: audio/word_{vần}.mp3
+         */
+        function playWordAudio(event) {
+            if (event) {
+                event.stopPropagation(); // Ngăn việc click xuyên qua (dù đã tách riêng element)
+            }
+            
+            if (isPlaying) {
+                stopAudio();
+                return;
+            }
+
+            const item = rhymeData[currentIndex];
+            if (!item.word || item.word === '(hiếm)') return;
+
+            const audioPath = `${AUDIO_DIR}/word_${item.rhyme}.mp3`;
+
+            stopAudio();
+            isPlaying = true;
+            cardElement.classList.add('playing');
+
+            currentAudio = new Audio(audioPath);
+
+            currentAudio.addEventListener('ended', function () {
+                stopAudio();
+            });
+
+            currentAudio.addEventListener('error', function () {
+                stopAudio();
+                audioStatus.textContent = `⚠️ Không tìm thấy file: ${audioPath}`;
+                audioStatus.className = 'audio-status error';
+            });
+
+            currentAudio.play().catch(function (err) {
+                stopAudio();
+                audioStatus.textContent = `⚠️ Lỗi phát âm: ${err.message}`;
+                audioStatus.className = 'audio-status error';
+            });
+        }
+
+        // Phím tắt
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'ArrowRight') {
+                nextCard();
+            }
+
+            if (e.key === 'ArrowLeft') {
+                prevCard();
+            }
+
+            if (e.key === ' ') {
+                e.preventDefault();
+                playAudio();
+            }
+
+            if (e.key === 's' || e.key === 'S') {
+                playSlowAudio();
+            }
+
+            if (e.key === 'w' || e.key === 'W') {
+                playWordAudio();
+            }
+        });
+
+        // Preload audio cho vần hiện tại + 2 vần kế tiếp
+        function preloadAudio() {
+            for (let i = 0; i < 3; i++) {
+                const idx = (currentIndex + i) % rhymes.length;
+                const rhyme = rhymes[idx];
+
+                // Preload bản thường
+                const audioNormal = new Audio();
+                audioNormal.preload = 'auto';
+                audioNormal.src = `${AUDIO_DIR}/${rhyme}.mp3`;
+
+                // Preload bản chậm
+                const audioSlow = new Audio();
+                audioSlow.preload = 'auto';
+                audioSlow.src = `${AUDIO_DIR}/${rhyme}_slow.mp3`;
+            }
+        }
+
+        // Kiểm tra file audio đầu tiên có tồn tại không
+        function checkAudioAvailability() {
+            const testAudio = new Audio(`${AUDIO_DIR}/${rhymes[0]}.mp3`);
+
+            testAudio.addEventListener('canplaythrough', function () {
+                audioStatus.style.display = 'none';
+            });
+
+            testAudio.addEventListener('error', function () {
+                audioStatus.textContent = '⚠️ Chưa tìm thấy file audio. Chạy generate_audio.js trước!';
+                audioStatus.className = 'audio-status error';
+                audioStatus.style.display = 'block';
+            });
+
+            testAudio.load();
+        }
+
+        // Khởi tạo
+        updateCard();
+        checkAudioAvailability();
+        preloadAudio();
+    </script>
+
+</body>
+</html>
